@@ -20,5 +20,3 @@ class Order:
         self.id = id
         self.location = location
         self.hat = hat
-
-
