@@ -16,7 +16,10 @@ class Supplier:
 
 # DTO represents orders table
 class Order:
-    def __init__(self, id, location, hat):
-        self.id = id
+    id_count = 1
+
+    def __init__(self, location, hat):
+        self.id = Order.id_count
+        Order.id_count += 1
         self.location = location
         self.hat = hat

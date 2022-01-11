@@ -1,9 +1,12 @@
 # Generic DAO class
+import inspect
+
+
 class DAO:
     def __init__(self, dto_type, con):
         self._conn = con
         self._dto_type = dto_type
-        # Using the assumption that DTO classes are obeying the same naming conventions
+        # using the assumption that DTO classes are obeying the same naming conventions
         self._table_name = dto_type.__name__.lower() + 's'
 
     def insert(self, dto_instance):
@@ -21,11 +24,10 @@ class DAO:
         params = list(kwargs.values())
 
         stmt = 'SELECT * FROM {} WHERE {}'.format(self._table_name,
-                                                   ' AND '.join([col + '=?' for col in col_names]))
+                                                  ' AND '.join([col + '=?' for col in col_names]))
         c = self._conn.cursor()
         c.execute(stmt, params)
-        # Delete the comment mark after implementation of orm
-        # return orm(c, self._dto_type)
+        return orm(c, self._dto_type)
 
     def update(self, set_values, cond):
         set_col_names = set_values.keys()
@@ -36,8 +38,8 @@ class DAO:
 
         params_list = list(set_params) + list(cond_params)
 
-        stmt = 'UPDATE {} SET {} WHERE {}'.format(self._table_name, ', '.join([set + '=?' for set in set_col_names])),\
-               ' AND '.join([cond + '=?' for cond in cond_col_names])
+        stmt = 'UPDATE {} SET {} WHERE {}'.format(self._table_name, ', '.join([set + '=?' for set in set_col_names]),
+               ' AND '.join([cond + '=?' for cond in cond_col_names]))
         self._conn.execute(stmt, params_list)
 
     def delete(self, **kwargs):
@@ -46,3 +48,20 @@ class DAO:
 
         stmt = 'DELETE FROM {} WHERE {}'.format(self._table_name, ' AND '.join([cond + '=?' for cond in col_names]))
         self._conn.execute(stmt, params)
+
+
+def row_map(row, col_mapping, dto_type):
+    ctor_args = [row[idx] for idx in col_mapping]
+    return dto_type(*ctor_args)
+
+
+def orm(cursor, dto_type):
+    args = inspect.getfullargspec(dto_type.__init__).args
+
+    # ignore the argument self
+    args = args[1:]
+
+    col_names = [column[0] for column in cursor.description]
+
+    col_mapping = [col_names.index(arg) for arg in args]
+    return [row_map(row, col_mapping, dto_type) for row in cursor.fetchall()]
