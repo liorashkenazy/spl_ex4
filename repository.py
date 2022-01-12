@@ -1,6 +1,4 @@
-import atexit
 import sqlite3
-import sys
 
 from dao import DAO
 from dto import *

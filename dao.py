@@ -29,6 +29,17 @@ class DAO:
         c.execute(stmt, params)
         return orm(c, self._dto_type)
 
+    def find_by_order(self, order_cat, **kwargs):
+        col_names = list(kwargs.keys())
+        params = list(kwargs.values())
+
+        stmt = 'SELECT * FROM {} WHERE {} ORDER BY {}'.format(self._table_name,
+                                                              ' AND '.join([col + '=?' for col in col_names]),
+                                                              order_cat)
+        c = self._conn.cursor()
+        c.execute(stmt, params)
+        return orm(c, self._dto_type)
+
     def update(self, set_values, cond):
         set_col_names = set_values.keys()
         set_params = set_values.values()
@@ -39,7 +50,7 @@ class DAO:
         params_list = list(set_params) + list(cond_params)
 
         stmt = 'UPDATE {} SET {} WHERE {}'.format(self._table_name, ', '.join([set + '=?' for set in set_col_names]),
-               ' AND '.join([cond + '=?' for cond in cond_col_names]))
+                                                  ' AND '.join([cond + '=?' for cond in cond_col_names]))
         self._conn.execute(stmt, params_list)
 
     def delete(self, **kwargs):

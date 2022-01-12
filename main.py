@@ -32,8 +32,7 @@ def parse_order():
 
 def order(line):
     params = line.split(',')
-    # TODO: fix this: should use the inventory from the first supplier (ordered by id)
-    order_hat = repo.hats.find(topping=params[1])[0]
+    order_hat = repo.hats.find_by_order("supplier", topping=params[1])[0]
     # update hats table
     repo.hats.update({'quantity': order_hat.quantity - 1}, {'id': order_hat.id})
     if order_hat.quantity == 0:
